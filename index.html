@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeWeb</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>SafeWeb</h1>
+        <p class="description">SafeWeb is a user-friendly web application designed to classify images as either "safe" or "unsafe." Utilizing the ONNX runtime, the tool leverages a custom-trained model to analyze uploaded images and applies a blur effect to any that are classified as unsafe. The interface is designed to be clean and intuitive, ensuring ease of use for all users.</p>
+        <p>Upload an image to check its safety. SafeWeb will automatically blur any image classified as unsafe.</p>
+        <div class="upload-section">
+            <input type="file" id="imageInput" accept="image/jpeg, image/png, image/jpg">
+            <div id="imageContainer">
+                <img id="uploadedImage" src="" alt="Uploaded Image" />
+                <div id="uploadResult"></div>
+                <button id="viewUploadedImage" class="hidden">View Anyway</button>
+            </div>
+        </div>
+
+        <h2>Examples</h2>
+        <div class="examples">
+            <div class="example">
+                <img id="safeExample" src="examples/safe_1.jpeg" alt="Safe Example">
+                <div class="label">Safe</div>
+            </div>
+            <div class="example">
+                <img id="unsafeExample" src="examples/unsafe_1.jpeg" alt="Unsafe Example">
+                <div class="label">Unsafe</div>
+                <button id="viewAnyway" class="hidden">View Anyway</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
