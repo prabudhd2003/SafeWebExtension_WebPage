@@ -1,0 +1,1 @@
+SafeWeb is a user-friendly web application designed to classify images as either "safe" or "unsafe." Utilizing the ONNX runtime, the tool leverages a custom-trained model to analyze uploaded images and applies a blur effect to any that are classified as unsafe. The interface is designed to be clean and intuitive, ensuring ease of use for all users.
