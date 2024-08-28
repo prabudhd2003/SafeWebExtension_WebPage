@@ -1,4 +1,3 @@
-// Image upload functionality
 document.getElementById('imageInput').addEventListener('change', async function(event) {
     const file = event.target.files[0];
     if (file) {
@@ -7,12 +6,10 @@ document.getElementById('imageInput').addEventListener('change', async function(
         const resultElement = document.getElementById('uploadResult');
         const viewUploadedButton = document.getElementById('viewUploadedImage');
 
+        uploadedImage.src = imageUrl;
         resultElement.textContent = "Classifying...";
 
-        const resizedImage = await resizeImage(imageUrl, 300, 300);
-        uploadedImage.src = resizedImage;
-
-        const safetyStatus = await classifyImageFromDataURL(resizedImage);
+        const safetyStatus = await classifyImage(file);
 
         resultElement.textContent = `Safety: ${safetyStatus}`;
 
@@ -31,66 +28,79 @@ document.getElementById('imageInput').addEventListener('change', async function(
     }
 });
 
-// Image URL fetching functionality
 document.getElementById('fetchImage').addEventListener('click', async function() {
     const url = document.getElementById('urlInput').value;
+    const urlImage = document.getElementById('urlImage');
+    const urlResult = document.getElementById('urlResult');
+    const viewUrlButton = document.getElementById('viewUrlImage');
+    const clearUrlButton = document.getElementById('clearUrl');
+
     if (url) {
-        const urlImage = document.getElementById('urlImage');
-        const urlResult = document.getElementById('urlResult');
-        const viewUrlButton = document.getElementById('viewUrlImage');
+        urlImage.src = url;
+        urlResult.textContent = "Fetching and classifying...";
+        viewUrlButton.classList.add('hidden');
+        clearUrlButton.classList.remove('hidden');
 
-        urlResult.textContent = "Fetching and Classifying...";
+        const fetchTimeout = setTimeout(() => {
+            urlResult.textContent = "Unable to fetch image. Try uploading.";
+            urlImage.src = "";
+            viewUrlButton.classList.add('hidden');
+        }, 10000); // 10 seconds timeout
 
-        const resizedImage = await resizeImage(url, 300, 300);
-        urlImage.src = resizedImage;
+        try {
+            await fetchImageAndClassify(url);
+            clearTimeout(fetchTimeout);
+            urlResult.textContent = "Fetch successful, classifying now...";
+            const safetyStatus = await classifyImageFromUrl(url);
 
-        const safetyStatus = await classifyImageFromDataURL(resizedImage);
+            urlResult.textContent = `Safety: ${safetyStatus}`;
 
-        urlResult.textContent = `Safety: ${safetyStatus}`;
+            if (safetyStatus === 'unsafe') {
+                urlImage.classList.add('blurred');
+                viewUrlButton.classList.remove('hidden');
+            } else {
+                urlImage.classList.remove('blurred');
+                viewUrlButton.classList.add('hidden');
+            }
 
-        if (safetyStatus === 'unsafe') {
-            urlImage.classList.add('blurred');
-            viewUrlButton.classList.remove('hidden');
-        } else {
-            urlImage.classList.remove('blurred');
+            viewUrlButton.addEventListener('click', function() {
+                urlImage.classList.remove('blurred');
+                viewUrlButton.classList.add('hidden');
+            });
+        } catch (error) {
+            urlResult.textContent = "Unable to fetch image. Try uploading.";
+            urlImage.src = "";
             viewUrlButton.classList.add('hidden');
         }
-
-        viewUrlButton.addEventListener('click', function() {
-            urlImage.classList.remove('blurred');
-            viewUrlButton.classList.add('hidden');
-        });
     }
 });
 
-// Resize image function
-async function resizeImage(imageSrc, targetWidth, targetHeight) {
-    return new Promise((resolve) => {
+document.getElementById('clearUrl').addEventListener('click', function() {
+    document.getElementById('urlInput').value = '';
+    document.getElementById('urlImage').src = '';
+    document.getElementById('urlResult').textContent = '';
+    document.getElementById('viewUrlImage').classList.add('hidden');
+    document.getElementById('clearUrl').classList.add('hidden');
+});
+
+async function fetchImageAndClassify(url) {
+    return new Promise((resolve, reject) => {
         const image = new Image();
         image.crossOrigin = 'anonymous';
-        image.src = imageSrc;
-
-        image.onload = function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = targetWidth;
-            canvas.height = targetHeight;
-            const context = canvas.getContext('2d');
-            context.drawImage(image, 0, 0, targetWidth, targetHeight);
-
-            resolve(canvas.toDataURL());  // Return the resized image as a data URL
-        };
+        image.src = url;
+        image.onload = resolve;
+        image.onerror = reject;
     });
 }
 
-// Classify image from data URL
-async function classifyImageFromDataURL(dataURL) {
+async function classifyImageFromUrl(imageUrl) {
     const modelPath = 'image_safety_model.onnx';
     const session = await ort.InferenceSession.create(modelPath);
 
     return new Promise((resolve) => {
         const image = new Image();
         image.crossOrigin = 'anonymous';
-        image.src = dataURL;
+        image.src = imageUrl;
 
         image.onload = async function() {
             const canvas = document.createElement('canvas');
@@ -118,7 +128,45 @@ async function classifyImageFromDataURL(dataURL) {
     });
 }
 
-// Preprocess image function
+async function classifyImage(imageFile) {
+    const modelPath = 'image_safety_model.onnx';
+    const session = await ort.InferenceSession.create(modelPath);
+    
+    const reader = new FileReader();
+    reader.readAsDataURL(imageFile);
+
+    return new Promise((resolve) => {
+        reader.onload = async function(event) {
+            const image = new Image();
+            image.src = event.target.result;
+
+            image.onload = async function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 224;
+                canvas.height = 224;
+                const context = canvas.getContext('2d');
+                context.drawImage(image, 0, 0, 224, 224);
+                const imageData = context.getImageData(0, 0, 224, 224);
+                const input = preprocessImage(imageData);
+
+                const feeds = {};
+                feeds[session.inputNames[0]] = new ort.Tensor('float32', input, [1, 3, 224, 224]);
+
+                const outputData = await session.run(feeds);
+                const output = outputData[session.outputNames[0]].data;
+
+                const predictedIdx = argMax(output);
+                const indexToCategory = {
+                    0: 'safe',
+                    1: 'unsafe'
+                };
+
+                resolve(indexToCategory[predictedIdx]);
+            };
+        };
+    });
+}
+
 function preprocessImage(imageData) {
     const { data, width, height } = imageData;
     const float32Data = new Float32Array(width * height * 3);
@@ -136,7 +184,6 @@ function preprocessImage(imageData) {
     return float32Data;
 }
 
-// Utility function to find the index of the maximum value in an array
 function argMax(array) {
     return array.indexOf(Math.max(...array));
 }
@@ -147,8 +194,8 @@ window.onload = async function() {
     const unsafeExample = document.getElementById('unsafeExample');
     const viewAnywayButton = document.getElementById('viewAnyway');
 
-    const safeStatus = await classifyImageFromDataURL(await resizeImage(safeExample.src, 300, 300));
-    const unsafeStatus = await classifyImageFromDataURL(await resizeImage(unsafeExample.src, 300, 300));
+    const safeStatus = await classifyImageFromUrl(safeExample.src);
+    const unsafeStatus = await classifyImageFromUrl(unsafeExample.src);
 
     if (safeStatus === 'safe') {
         document.querySelectorAll('.example .label')[0].textContent = 'Safe';

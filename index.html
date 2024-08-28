@@ -11,7 +11,7 @@
     <div class="container">
         <h1>SafeWeb</h1>
         <p class="description">SafeWeb is a user-friendly web application designed to classify images as either "safe" or "unsafe." Utilizing the ONNX runtime, the tool leverages a custom-trained model to analyze uploaded images and applies a blur effect to any that are classified as unsafe. The interface is designed to be clean and intuitive, ensuring ease of use for all users.</p>
-        <p>Upload an image or enter a web link to check its safety. SafeWeb will automatically blur any image classified as unsafe.</p>
+        <p>Upload an image or enter a URL to check its safety. SafeWeb will automatically blur any image classified as unsafe.</p>
         
         <div class="upload-section">
             <input type="file" id="imageInput" accept="image/jpeg, image/png, image/jpg">
@@ -21,11 +21,12 @@
                 <button id="viewUploadedImage" class="hidden">View Anyway</button>
             </div>
         </div>
-        
+
         <div class="url-section">
-            <input type="text" id="urlInput" placeholder="Enter image URL here">
+            <input type="text" id="urlInput" placeholder="Enter image URL">
             <button id="fetchImage">Fetch and Classify</button>
-            <div id="urlImageContainer">
+            <button id="clearUrl" class="hidden">Clear</button>
+            <div id="urlContainer">
                 <img id="urlImage" src="" alt="Fetched Image" />
                 <div id="urlResult"></div>
                 <button id="viewUrlImage" class="hidden">View Anyway</button>
