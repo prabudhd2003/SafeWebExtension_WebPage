@@ -28,7 +28,15 @@ h1 {
     margin-bottom: 40px;
 }
 
-#imageContainer, #urlContainer {
+#imageContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#urlContainer {
     position: relative;
     display: inline-block;
     margin-bottom: 20px; /* Space between image and button */
@@ -103,3 +111,22 @@ button:hover {
     text-align: center;
 }
 
+.uploadedImage, #urlImage {
+    width: 250px;  /* Set a fixed width */
+    height: 220px; /* Set a fixed height */
+    object-fit: cover;  /* Maintain aspect ratio, cover the whole area */
+    margin: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.image-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.image-item {
+    text-align: center;
+    margin-bottom: 20px;
+}

@@ -1,30 +1,46 @@
 document.getElementById('imageInput').addEventListener('change', async function(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const imageUrl = URL.createObjectURL(file);
-        const uploadedImage = document.getElementById('uploadedImage');
-        const resultElement = document.getElementById('uploadResult');
-        const viewUploadedButton = document.getElementById('viewUploadedImage');
+    const files = event.target.files;
+    const imageContainer = document.getElementById('imageContainer');
+    imageContainer.innerHTML = '';  // Clear previous images
 
-        uploadedImage.src = imageUrl;
-        resultElement.textContent = "Classifying...";
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file) {
+            const imageUrl = URL.createObjectURL(file);
+            const imageItem = document.createElement('div');
+            imageItem.classList.add('image-item');
 
-        const safetyStatus = await classifyImage(file);
+            const imgElement = document.createElement('img');
+            imgElement.src = imageUrl;
+            imgElement.classList.add('uploadedImage');  // Add a class to target styles
+            imageItem.appendChild(imgElement);
 
-        resultElement.textContent = `Safety: ${safetyStatus}`;
+            const safetyStatus = await classifyImage(file);
+            const resultLabel = document.createElement('div');
+            resultLabel.textContent = `Safety: ${safetyStatus}`;
+            imageItem.appendChild(resultLabel);
 
-        if (safetyStatus === 'unsafe') {
-            uploadedImage.classList.add('blurred');
-            viewUploadedButton.classList.remove('hidden');
-        } else {
-            uploadedImage.classList.remove('blurred');
-            viewUploadedButton.classList.add('hidden');
+            if (safetyStatus === 'unsafe') {
+                imgElement.classList.add('blurred');
+            }
+
+            // Optionally, add a button to view blurred images
+            const viewButton = document.createElement('button');
+            viewButton.textContent = 'View Anyway';
+            viewButton.classList.add('hidden');
+            imageItem.appendChild(viewButton);
+
+            if (safetyStatus === 'unsafe') {
+                viewButton.classList.remove('hidden');
+            }
+
+            viewButton.addEventListener('click', function() {
+                imgElement.classList.remove('blurred');
+                viewButton.classList.add('hidden');
+            });
+
+            imageContainer.appendChild(imageItem);
         }
-
-        viewUploadedButton.addEventListener('click', function() {
-            uploadedImage.classList.remove('blurred');
-            viewUploadedButton.classList.add('hidden');
-        });
     }
 });
 

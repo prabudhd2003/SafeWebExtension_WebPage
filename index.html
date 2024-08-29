@@ -14,22 +14,20 @@
         <p>Upload an image or enter a URL to check its safety. SafeWeb will automatically blur any image classified as unsafe.</p>
         
         <div class="upload-section">
-            <input type="file" id="imageInput" accept="image/jpeg, image/png, image/jpg">
-            <div id="imageContainer">
-                <img id="uploadedImage" src="" alt="Uploaded Image" />
-                <div id="uploadResult"></div>
-                <button id="viewUploadedImage" class="hidden">View Anyway</button>
-            </div>
+            <input type="file" id="imageInput" accept="image/jpeg, image/png, image/jpg" multiple>
+            <div id="imageContainer" class="image-container"></div>
         </div>
 
         <div class="url-section">
             <input type="text" id="urlInput" placeholder="Enter image URL">
             <button id="fetchImage">Fetch and Classify</button>
             <button id="clearUrl" class="hidden">Clear</button>
-            <div id="urlContainer">
-                <img id="urlImage" src="" alt="Fetched Image" />
-                <div id="urlResult"></div>
-                <button id="viewUrlImage" class="hidden">View Anyway</button>
+            <div id="urlContainer" class="image-container">
+                <div class="image-item">
+                    <img id="urlImage" src="" alt="Fetched Image" class="uploadedImage" />
+                    <div id="urlResult"></div>
+                    <button id="viewUrlImage" class="hidden">View Anyway</button>
+                </div>
             </div>
         </div>
 
@@ -50,3 +48,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
